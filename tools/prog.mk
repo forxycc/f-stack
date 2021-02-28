@@ -50,11 +50,22 @@ PKGCONF ?= pkg-config
 FF_PROG_CFLAGS:= -g -Wall -Werror -DFSTACK -std=gnu99 $(shell $(PKGCONF) --cflags libdpdk)
 FF_PROG_CFLAGS+= -I${TOPDIR}/lib -I${TOPDIR}/tools/compat
 FF_PROG_CFLAGS+= -include${TOPDIR}/tools/compat/compat.h
+
+ifeq (${CROSS_COMPILE}, aarch64-linux-gnu-)
+FF_PROG_CFLAGS+= -include${ARM_TOOLCHAN}/aarch64-linux-gnu/libc/usr/include/sys/user.h 
+CC = aarch64-linux-gnu-gcc
+endif
+
 FF_PROG_CFLAGS+= -I${TOPDIR}/tools/compat/include -D__BSD_VISIBLE
 
 FF_PROG_LIBS:= -L${TOPDIR}/tools/compat -Wl,--whole-archive,-lffcompat,--no-whole-archive
 FF_PROG_LIBS+= $(shell $(PKGCONF) --static --libs libdpdk)
-FF_PROG_LIBS+= -Wl,--no-whole-archive -lrt -lm -ldl -lcrypto -lpthread -lnuma
+FF_PROG_LIBS+= -Wl,--no-whole-archive -lrt -lm -ldl -lpthread 
+
+ifndef CROSS_COMPILE 
+FF_PROG_LIBS+= $(shell $(PKGCONF) --static --libs libcrypto)
+FF_PROG_LIBS+= -lnuma
+endif
 
 CFLAGS+= -Wno-unused-but-set-variable -Wno-unused-variable
 CFLAGS+= ${FF_PROG_CFLAGS}

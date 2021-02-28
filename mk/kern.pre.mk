@@ -9,6 +9,17 @@ MACHINE_CPUARCH:= $(shell uname -m)
 # Convert Mac OS X name to FreeBSD one.
 ifeq (${MACHINE_CPUARCH},x86_64)
 MACHINE_CPUARCH=	amd64
+NM = nm
+LD = ld
+OBJCOPY = objcopy
+endif
+
+ifeq (${CROSS_COMPILE}, aarch64-linux-gnu-)
+MACHINE_CPUARCH=	aarch64
+CC = aarch64-linux-gnu-gcc
+NM = aarch64-linux-gnu-nm
+LD = aarch64-linux-gnu-ld
+OBJCOPY = aarch64-linux-gnu-objcopy 
 endif
 
 AWK?=		awk

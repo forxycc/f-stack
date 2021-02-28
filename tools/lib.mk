@@ -22,6 +22,11 @@ endif
 FF_LIB_CFLAGS:= -g -Wall -Werror -DFSTACK -std=gnu99
 FF_LIB_CFLAGS+= -I${TOPDIR}/lib -I${TOPDIR}/tools/compat
 FF_LIB_CFLAGS+= -include${TOPDIR}/tools/compat/compat.h
+
+ifeq (${CROSS_COMPILE}, aarch64-linux-gnu-)
+FF_LIB_CFLAGS+= -include${ARM_TOOLCHAN}/arch64-linux-gnu/libc/usr/include/sys/user.h
+endif
+
 FF_LIB_CFLAGS+= -I${TOPDIR}/tools/compat/include -D__BSD_VISIBLE
 
 CFLAGS+= ${FF_LIB_CFLAGS}

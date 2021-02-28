@@ -1,5 +1,10 @@
 SUBDIRS=compat libutil libmemstat libxo libnetgraph sysctl ifconfig route top netstat ngctl ipfw arp traffic knictl ndp
+
+ifndef FSTACK_PATH
 PREFIX_BIN=/usr/local/bin
+else
+PREFIX_BIN=${FSTACK_PATH}/bin
+endif
 
 all:
 	for d in $(SUBDIRS); do ( cd $$d; $(MAKE) all ) ; done

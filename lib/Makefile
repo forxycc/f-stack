@@ -14,11 +14,16 @@ S=${TOPDIR}/freebsd
 MACHINE_INCLUDES_ROOT:=${CURDIR}/machine_include
 OVERRIDE_INCLUDES_ROOT:=${CURDIR}/include
 X86_INCLUDES=0
+
+ifndef FSTACK_PATH
 PREFIX=/usr/local
+else
+PREFIX=${FSTACK_PATH}
+endif
 PREFIX_LIB=${PREFIX}/lib
-PREFIX_INCLUDE=/usr/local/include
-PREFIX_BIN=/usr/local/bin
-F-STACK_CONF=/etc/f-stack.conf
+PREFIX_INCLUDE=${PREFIX}/include
+PREFIX_BIN=${PREFIX}/bin
+F-STACK_CONF=${PREFIX}/bin/f-stack.conf
 F-STACK_VERSION=1.22
 
 HOST_OS:=$(shell uname -s)
@@ -43,6 +48,8 @@ PKGCONF ?= pkg-config
 
 DPDK_CFLAGS= -Wall -Wno-deprecated-declarations -Werror $(shell $(PKGCONF) --cflags libdpdk)
 
+OPENSSL_CFLAGS = -I${OPENSSL_PATH}/include
+
 KERNPREINCLUDES:= ${INCLUDES}
 INCLUDES= -I${OVERRIDE_INCLUDES_ROOT} ${KERNPREINCLUDES}
 INCLUDES+= -I./machine_include
@@ -61,6 +68,7 @@ HOST_CFLAGS+= -DFF_KNI
 endif
 
 HOST_CFLAGS+= ${DPDK_CFLAGS}
+HOST_CFLAGS+= ${OPENSSL_CFLAGS}
 HOST_CFLAGS+= ${CONF_CFLAGS}
 
 ifdef FF_FLOW_ISOLATE
@@ -581,10 +589,10 @@ all: libfstack.a
 #
 libfstack.a: machine_includes ff_api.symlist ${MHEADERS} ${MSRCS} ${HOST_OBJS} ${ASM_OBJS} ${OBJS}
 	${LD} -d -r -o $*.ro ${ASM_OBJS} ${OBJS}
-	nm $*.ro  | grep -v ' U ' | cut -d ' ' -f 3 > $*_localize_list.tmp
-	objcopy --localize-symbols=$*_localize_list.tmp $*.ro 
+	${NM} $*.ro  | grep -v ' U ' | cut -d ' ' -f 3 > $*_localize_list.tmp
+	${OBJCOPY} --localize-symbols=$*_localize_list.tmp $*.ro 
 	rm $*_localize_list.tmp
-	objcopy --globalize-symbols=ff_api.symlist $*.ro
+	${OBJCOPY} --globalize-symbols=ff_api.symlist $*.ro
 	rm -f $@
 	ar -cqs $@ $*.ro ${HOST_OBJS}
 	rm -f $*.ro
@@ -616,6 +624,8 @@ clean:
 
 .PHONY: machine_includes
 machine_includes:
+	@rm -rf include/machine
+	@ln -s amd64/include include/machine
 	@rm -rf ${MACHINE_INCLUDES_ROOT}
 	@mkdir -p ${MACHINE_INCLUDES_ROOT}/machine
 	@cp -r $S/${MACHINE_CPUARCH}/include/* ${MACHINE_INCLUDES_ROOT}/machine
@@ -647,6 +657,11 @@ install:
 	rm -rf ${PREFIX_INCLUDE}/ff_errno.h
 	rm -rf ${PREFIX_INCLUDE}/ff_epoll.h
 	rm -rf ${PREFIX_BIN}/ff_start
+
+	mkdir -p ${PREFIX}
+	mkdir -p ${PREFIX_LIB}
+	mkdir -p ${PREFIX_BIN}
+	mkdir -p ${PREFIX_INCLUDE}
 
 	cp -f libfstack.a ${PREFIX_LIB}/libfstack.a.${F-STACK_VERSION}
 	ln -sf ${PREFIX_LIB}/libfstack.a.${F-STACK_VERSION} ${PREFIX_LIB}/libfstack.a

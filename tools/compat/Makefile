@@ -18,6 +18,12 @@ PKGCONF ?= pkg-config
 DPDK_CFLAGS= -g -Wall -Werror -Wno-deprecated-declarations $(shell $(PKGCONF) --cflags libdpdk)
 
 CFLAGS+= ${DPDK_CFLAGS} -I${CURDIR}/include
+
+ifeq (${CROSS_COMPILE}, aarch64-linux-gnu-)
+CFLAGS+= -include${ARM_TOOLCHAN}/aarch64-linux-gnu/libc/usr/include/sys/user.h
+CC = aarch64-linux-gnu-gcc
+endif
+
 CFLAGS+= -I${TOPDIR}/lib -D__BSD_VISIBLE -DFSTACK
 
 SRCS=$(wildcard *.c)

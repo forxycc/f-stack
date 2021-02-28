@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FF_PATH=`pwd`
+export FF_PATH=`pwd`
 
 # arm64 tool chain
 export ARM_TOOLCHAN=/opt/aarch64-gcc

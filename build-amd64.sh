@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FF_PATH=`pwd`
+export FF_PATH=`pwd`
 
 # openssl installed 
 export OPENSSL_PATH=/usr/local/openssl-1.1.1j-amd64
